@@ -31,7 +31,7 @@ public final class Test {
      * deve essere volatile? - la disabilitazione dei pulsanti sia realizzata
      * col metodo setEnabled
      */
-
+    
     /**
      * 
      * @param args
@@ -39,6 +39,6 @@ public final class Test {
      * 
      */
     public static void main(final String... args) {
-        // new ConcurrentGUI();
+        new ConcurrentGUI();
     }
 }
