@@ -13,10 +13,14 @@ import javax.swing.SwingUtilities;
 public final class AnotherConcurrentGUI {
     private static final double WIDTH_PERC = 0.2;
     private static final double HEIGHT_PERC = 0.1;
+
     private final JLabel display = new JLabel();
     private final JButton up = new JButton("up");
     private final JButton down = new JButton("down");
     private final JButton stop = new JButton("stop");
+
+    private final CounterAgent counter = new CounterAgent();
+    private final StopperAgent stopper = new StopperAgent(counter);
 
     public AnotherConcurrentGUI() {
         final JFrame mainFrame = new JFrame();
@@ -31,37 +35,34 @@ public final class AnotherConcurrentGUI {
         mainFrame.setContentPane(panel);
         mainFrame.setVisible(true);
         /*
-         * counter thread part
-         */
-        final CounterAgent agent = new CounterAgent();
-        new Thread(agent).start();
-        /*
          * Listeners
          */
-        this.up.addActionListener(e -> agent.up());
-        this.down.addActionListener(e -> agent.down());
-        this.stop.addActionListener(e -> agent.stopCounting());
+        this.up.addActionListener(e -> this.counter.up());
+        this.down.addActionListener(e -> this.counter.down());
+        this.stop.addActionListener(e -> this.counter.stopCounting());
         /*
-         * StopperAgent in action
+         * Agents in action
          */
-        final StopperAgent stopper = new StopperAgent(agent);
-        new Thread(stopper).start();
+        new Thread(this.counter).start();
+        new Thread(this.stopper).start();
     }
 
     private final class StopperAgent extends Thread {
-        private static final int TEN_SECS = 10_000;
+        private static final int COUNT_TIME = 10_000;
         private final CounterAgent agent;
 
-        public StopperAgent(final CounterAgent agent) {
+        private StopperAgent(final CounterAgent agent) {
             this.agent = agent;
         }
 
         public void run() {
             try {
-                Thread.sleep(TEN_SECS);
-                AnotherConcurrentGUI.this.up.setEnabled(false);
-                AnotherConcurrentGUI.this.down.setEnabled(false);
-                AnotherConcurrentGUI.this.stop.setEnabled(false);
+                Thread.sleep(COUNT_TIME);
+                SwingUtilities.invokeLater(() -> {
+                    AnotherConcurrentGUI.this.up.setEnabled(false);
+                    AnotherConcurrentGUI.this.down.setEnabled(false);
+                    AnotherConcurrentGUI.this.stop.setEnabled(false);
+                });
                 this.stopCounter(this.agent);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
